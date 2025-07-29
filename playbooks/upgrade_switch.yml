@@ -1,0 +1,44 @@
+---
+- name: Simulate IOS Upgrade on Cisco Routers
+  hosts: all
+  gather_facts: no
+  collections:
+    - cisco.ios
+
+  tasks:
+
+    - name: Backup Running Configuration
+      ios_config:
+        backup: yes
+      register: config_backup
+
+    - name:  Display Backup File Path
+      debug:
+        msg: "Backup saved at {{ config_backup.backup_path }}"
+
+    - name:  Show Flash to Check Existing Image
+      ios_command:
+        commands:
+          - dir flash:
+      register: flash_output
+
+    - name:  Display Current Image Info
+      debug:
+        var: flash_output.stdout_lines
+
+    - name: ️ Set Boot System to Existing Image
+      ios_config:
+        lines:
+          -  boot system flash:c7200-adventerprisek9-mz.152-4.S5.bin  # Change this to match your image filename
+
+    - name: Save Configuration
+      ios_config:
+        save_when: always
+
+    - name:  Reload Router (Auto-confirm YES)
+      ios_command:
+        commands:
+          - reload
+          - ""
+          - "y"
+      ignore_errors: true
