@@ -1,0 +1,121 @@
+Started by user unknown or anonymous
+Running as SYSTEM
+Building in workspace /var/lib/jenkins/workspace/SwitchFleetManager_Upgrade
+The recommended git tool is: NONE
+using credential test
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/SwitchFleetManager_Upgrade/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/Praneeth76940/SwitchFleetManager # timeout=10
+Fetching upstream changes from https://github.com/Praneeth76940/SwitchFleetManager
+ > git --version # timeout=10
+ > git --version # 'git version 2.25.1'
+using GIT_ASKPASS to set credentials Test
+ > git fetch --tags --force --progress -- https://github.com/Praneeth76940/SwitchFleetManager +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision 0efc4052d95327122942549acf7f1c83b2fe459b (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 0efc4052d95327122942549acf7f1c83b2fe459b # timeout=10
+Commit message: "Update upgrade_switch.yml"
+ > git rev-list --no-walk 9fa1a4be6368804b46025dbd069b800ce534e099 # timeout=10
+[SwitchFleetManager_Upgrade] $ sshpass ******** ansible-playbook playbooks/upgrade_switch.yml -i inventory/switches.yml -f 5 -u praneeth -k
+
+PLAY [Simulate IOS Upgrade on Cisco Routers] ***********************************
+
+TASK [🔄 Backup Running Configuration] ******************************************
+changed: [R2]
+changed: [R1]
+
+TASK [✅ Display Backup Path] ***************************************************
+ok: [R2] => {
+    "msg": "✅ Backup saved at /var/lib/jenkins/workspace/SwitchFleetManager_Upgrade/playbooks/backup/R2_config.2025-07-29@19:16:26"
+}
+ok: [R1] => {
+    "msg": "✅ Backup saved at /var/lib/jenkins/workspace/SwitchFleetManager_Upgrade/playbooks/backup/R1_config.2025-07-29@19:16:26"
+}
+
+TASK [💾 Check Flash for Existing Image] ****************************************
+fatal: [R1]: FAILED! => {"changed": false, "msg": "dir flash:\r\n%Error opening slot0:/ (No such device)\r\nR1#"}
+...ignoring
+fatal: [R2]: FAILED! => {"changed": false, "msg": "dir flash:\r\n%Error opening slot0:/ (No such device)\r\nr2#"}
+...ignoring
+
+TASK [🧾 Show Flash Output or Warning] ******************************************
+ok: [R1] => {
+    "msg": "⚠️ Flash check failed: flash directory not accessible in GNS3.\n"
+}
+ok: [R2] => {
+    "msg": "⚠️ Flash check failed: flash directory not accessible in GNS3.\n"
+}
+
+TASK [🚫 Simulate Copying IOS Image via SCP] ************************************
+ok: [R2] => {
+    "msg": "🚫 Skipping real SCP. Simulating image copy of c1900-universalk9-mz.SPA.155-3.M4.bin."
+}
+ok: [R1] => {
+    "msg": "🚫 Skipping real SCP. Simulating image copy of c1900-universalk9-mz.SPA.155-3.M4.bin."
+}
+
+TASK [🔧 Set Boot Variable] *****************************************************
+ok: [R2]
+ok: [R1]
+
+TASK [🕵️‍♂️ Verify Boot Variable] **********************************************
+ok: [R1]
+ok: [R2]
+
+TASK [✅ Confirm Boot Variable] *************************************************
+ok: [R1] => {
+    "msg": "✅ Boot variable is set correctly: boot-start-marker\nboot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin\nboot-end-marker"
+}
+ok: [R2] => {
+    "msg": "✅ Boot variable is set correctly: boot-start-marker\nboot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin\nboot-end-marker"
+}
+
+TASK [💡 Show Uptime Before Reload] *********************************************
+ok: [R1]
+ok: [R2]
+
+TASK [⏱️ Display Uptime] *******************************************************
+ok: [R1] => {
+    "msg": "🕒 Device uptime: R1 uptime is 35 minutes"
+}
+ok: [R2] => {
+    "msg": "🕒 Device uptime: r2 uptime is 35 minutes"
+}
+
+TASK [ios_config] **************************************************************
+ok: [R1]
+fatal: [R2]: FAILED! => {"changed": false, "msg": "command timeout triggered, timeout value is 60 secs.\nSee the timeout setting options in the Network Debug and Troubleshooting Guide."}
+
+TASK [debug] *******************************************************************
+ok: [R2] => {
+    "msg": "⚠️ Save config failed on R2, continuing..."
+}
+
+TASK [🔁 Simulate Device Reload] ************************************************
+fatal: [R2]: FAILED! => {"changed": false, "msg": "s\r\nNo action taken because command was not confirmed\r\nr2#how version\r\nhow version\r\n ^\r\n% Invalid input detected at '^' marker.\r\n\r\nr2#"}
+...ignoring
+fatal: [R1]: FAILED! => {"changed": false, "msg": "command timeout triggered, timeout value is 60 secs.\nSee the timeout setting options in the Network Debug and Troubleshooting Guide."}
+...ignoring
+
+TASK [📟 Simulate Show Version After Reload] ************************************
+ok: [R1] => {
+    "msg": "📟 Simulating 'show version' - Device assumed reloaded successfully."
+}
+ok: [R2] => {
+    "msg": "📟 Simulating 'show version' - Device assumed reloaded successfully."
+}
+
+TASK [✅ Final Status Message] **************************************************
+ok: [R1] => {
+    "msg": "🎉 IOS upgrade simulation completed on R1!"
+}
+ok: [R2] => {
+    "msg": "🎉 IOS upgrade simulation completed on R2!"
+}
+
+PLAY RECAP *********************************************************************
+R1                         : ok=14   changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=2   
+R2                         : ok=14   changed=1    unreachable=0    failed=0    skipped=0    rescued=1    ignored=2   
+
+Finished: SUCCESS
