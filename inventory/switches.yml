@@ -4,7 +4,7 @@ all:
       ansible_host: 192.168.206.10
       ansible_user: praneeth
       ansible_password: gns3pass
-      ansible_network_os: cisco.ios.ios
+      ansible_network_os: ios
       ansible_connection: network_cli
       ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
@@ -12,6 +12,6 @@ all:
       ansible_host: 192.168.206.11
       ansible_user: praneeth
       ansible_password: gns3pass
-      ansible_network_os: cisco.ios.ios
+      ansible_network_os: ios
       ansible_connection: network_cli
       ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
