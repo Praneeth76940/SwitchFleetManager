@@ -4,6 +4,10 @@
   gather_facts: no
   connection: network_cli
 
+  vars:
+    simulate_scp: true  # Set to false if using real SCP server
+    dummy_ios_image: "c1900-universalk9-mz.SPA.155-3.M4.bin"
+
   tasks:
 
   - name: Backup Running Configuration
@@ -13,30 +17,44 @@
 
   - name: Display Backup Path
     debug:
-      msg: "Backup saved at {{ backup_result.backup_path }}"
+      msg: "✅ Backup saved at {{ backup_result.backup_path }}"
 
   - name: Show Flash to Check Existing Image
     ios_command:
       commands: "dir flash:"
     register: flash_output
+    ignore_errors: true  # GNS3 routers show slot0 error
 
-  - name: Print Flash Contents
+  - name: Print Flash Contents or Warning
     debug:
-      var: flash_output.stdout_lines
+      msg: >-
+        {% if 'No such device' in flash_output.msg %}
+        ⚠️ Flash check failed: flash directory not accessible in GNS3 simulation.
+        {% else %}
+        📁 Flash contents: {{ flash_output.stdout[0] }}
+        {% endif %}
 
-  - name: Simulate Copying IOS Image (No Real SCP)
+  - name: Simulate Copying IOS Image
     debug:
-      msg: "Simulated: Copy IOS from SCP to flash. Skipping real transfer."
+      msg: "🚫 Skipping real SCP copy. Simulating image copy for {{ dummy_ios_image }}."
 
-  - name: Set Boot Variable (Simulated Image)
+  - name: Set Boot Variable
     ios_config:
       lines:
-        - boot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin
+        - boot system flash:{{ dummy_ios_image }}
 
   - name: Save Configuration
     ios_config:
       save_when: modified
 
-  - name: Simulate Reload (Skipping actual reload)
+  - name: Reload the Device
+    ios_command:
+      commands:
+        - reload
+    vars:
+      ansible_command_timeout: 60
+    ignore_errors: yes  # Expected router disconnect
+
+  - name: ✅ Final Status Message
     debug:
-      msg: "Simulated: Reload command issued. Device would reboot here."
+      msg: "🎉 IOS upgrade simulated successfully on {{ inventory_hostname }}"
