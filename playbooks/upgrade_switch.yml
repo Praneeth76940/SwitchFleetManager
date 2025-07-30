@@ -24,14 +24,11 @@
     debug:
       var: flash_output.stdout_lines
 
-  - name: Copy New IOS Image via SCP
-    ios_command:
-      commands:
-        - copy scp://192.168.206.1/c1900-universalk9-mz.SPA.155-3.M4.bin flash:
-    vars:
-      ansible_command_timeout: 300
+  - name: Simulate Copying IOS Image (No Real SCP)
+    debug:
+      msg: "Simulated: Copy IOS from SCP to flash. Skipping real transfer."
 
-  - name: Set Boot Variable
+  - name: Set Boot Variable (Simulated Image)
     ios_config:
       lines:
         - boot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin
@@ -40,11 +37,6 @@
     ios_config:
       save_when: modified
 
-  - name: Reload the Device
-    ios_command:
-      commands:
-        - reload
-    vars:
-      ansible_command_timeout: 60
-    ignore_errors: yes  # Router may disconnect before responding
-
+  - name: Simulate Reload (Skipping actual reload)
+    debug:
+      msg: "Simulated: Reload command issued. Device would reboot here."
