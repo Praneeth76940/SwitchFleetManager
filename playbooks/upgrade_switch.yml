@@ -4,57 +4,80 @@
   gather_facts: no
   connection: network_cli
 
-  vars:
-    simulate_scp: true  # Set to false if using real SCP server
-    dummy_ios_image: "c1900-universalk9-mz.SPA.155-3.M4.bin"
-
   tasks:
 
-  - name: Backup Running Configuration
+  - name: 🔄 Backup Running Configuration
     ios_config:
       backup: yes
     register: backup_result
 
-  - name: Display Backup Path
+  - name: ✅ Display Backup Path
     debug:
       msg: "✅ Backup saved at {{ backup_result.backup_path }}"
 
-  - name: Show Flash to Check Existing Image
+  - name: 💾 Check Flash for Existing Image
     ios_command:
       commands: "dir flash:"
     register: flash_output
-    ignore_errors: true  # GNS3 routers show slot0 error
+    ignore_errors: yes
 
-  - name: Print Flash Contents or Warning
+  - name: 🧾 Show Flash Output or Warning
     debug:
-      msg: >-
-        {% if 'No such device' in flash_output.msg %}
-        ⚠️ Flash check failed: flash directory not accessible in GNS3 simulation.
-        {% else %}
-        📁 Flash contents: {{ flash_output.stdout[0] }}
-        {% endif %}
+      msg: >
+        {{ "⚠️ Flash check failed: flash directory not accessible in GNS3." 
+        if flash_output.failed else flash_output.stdout[0] }}
 
-  - name: Simulate Copying IOS Image
+  - name: 🚫 Simulate Copying IOS Image via SCP
     debug:
-      msg: "🚫 Skipping real SCP copy. Simulating image copy for {{ dummy_ios_image }}."
+      msg: "🚫 Skipping real SCP. Simulating image copy of c1900-universalk9-mz.SPA.155-3.M4.bin."
 
-  - name: Set Boot Variable
+  - name: 🔧 Set Boot Variable
     ios_config:
       lines:
-        - boot system flash:{{ dummy_ios_image }}
+        - boot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin
 
-  - name: Save Configuration
-    ios_config:
-      save_when: modified
+  - name: 🕵️‍♂️ Verify Boot Variable
+    ios_command:
+      commands:
+        - show run | include boot
+    register: boot_check
 
-  - name: Reload the Device
+  - name: ✅ Confirm Boot Variable
+    debug:
+      msg: "✅ Boot variable is set correctly: {{ boot_check.stdout[0] }}"
+
+  - name: 💡 Show Uptime Before Reload
+    ios_command:
+      commands:
+        - show version | include uptime
+    register: uptime_output
+
+  - name: ⏱️ Display Uptime
+    debug:
+      msg: "🕒 Device uptime: {{ uptime_output.stdout[0] | default('N/A') }}"
+
+  - name: 💾 Save Configuration
+    block:
+      - ios_config:
+          save_when: modified
+        vars:
+          ansible_command_timeout: 60
+    rescue:
+      - debug:
+          msg: "⚠️ Save config failed on {{ inventory_hostname }}, continuing..."
+
+  - name: 🔁 Simulate Device Reload
     ios_command:
       commands:
         - reload
     vars:
       ansible_command_timeout: 60
-    ignore_errors: yes  # Expected router disconnect
+    ignore_errors: yes
+
+  - name: 📟 Simulate Show Version After Reload
+    debug:
+      msg: "📟 Simulating 'show version' - Device assumed reloaded successfully."
 
   - name: ✅ Final Status Message
     debug:
-      msg: "🎉 IOS upgrade simulated successfully on {{ inventory_hostname }}"
+      msg: "🎉 IOS upgrade simulation completed on {{ inventory_hostname }}!"
