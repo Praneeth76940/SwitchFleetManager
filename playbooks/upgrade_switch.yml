@@ -2,43 +2,49 @@
 - name: Simulate IOS Upgrade on Cisco Routers
   hosts: all
   gather_facts: no
-  collections:
-    - cisco.ios
+  connection: network_cli
 
   tasks:
 
-    - name: Backup Running Configuration
-      ios_config:
-        backup: yes
-      register: config_backup
+  - name: Backup Running Configuration
+    ios_config:
+      backup: yes
+    register: backup_result
 
-    - name:  Display Backup File Path
-      debug:
-        msg: "Backup saved at {{ config_backup.backup_path }}"
+  - name: Display Backup Path
+    debug:
+      msg: "Backup saved at {{ backup_result.backup_path }}"
 
-    - name:  Show Flash to Check Existing Image
-      ios_command:
-        commands:
-          - dir flash:
-      register: flash_output
+  - name: Show Flash to Check Existing Image
+    ios_command:
+      commands: "dir flash:"
+    register: flash_output
 
-    - name:  Display Current Image Info
-      debug:
-        var: flash_output.stdout_lines
+  - name: Print Flash Contents
+    debug:
+      var: flash_output.stdout_lines
 
-    - name: ️ Set Boot System to Existing Image
-      ios_config:
-        lines:
-          -  boot system flash:c7200-adventerprisek9-mz.152-4.S5.bin  # Change this to match your image filename
+  - name: Copy New IOS Image via SCP
+    ios_command:
+      commands:
+        - copy scp://192.168.206.1/c1900-universalk9-mz.SPA.155-3.M4.bin flash:
+    vars:
+      ansible_command_timeout: 300
 
-    - name: Save Configuration
-      ios_config:
-        save_when: always
+  - name: Set Boot Variable
+    ios_config:
+      lines:
+        - boot system flash:c1900-universalk9-mz.SPA.155-3.M4.bin
 
-    - name:  Reload Router (Auto-confirm YES)
-      ios_command:
-        commands:
-          - reload
-          - ""
-          - "y"
-      ignore_errors: true
+  - name: Save Configuration
+    ios_config:
+      save_when: modified
+
+  - name: Reload the Device
+    ios_command:
+      commands:
+        - reload
+    vars:
+      ansible_command_timeout: 60
+    ignore_errors: yes  # Router may disconnect before responding
+
