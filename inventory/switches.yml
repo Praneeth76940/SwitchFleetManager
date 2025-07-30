@@ -4,12 +4,12 @@ all:
       ansible_host: 192.168.206.10
       ansible_user: praneeth
       ansible_password: gns3pass
-      ansible_network_os: cisco.ios.ios
+      ansible_network_os: ios
       ansible_connection: network_cli
 
     R2:
       ansible_host: 192.168.206.11
       ansible_user: praneeth
       ansible_password: gns3pass
-      ansible_network_os: cisco.ios.ios
+      ansible_network_os: ios
       ansible_connection: network_cli
