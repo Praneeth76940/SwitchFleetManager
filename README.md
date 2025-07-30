@@ -1,86 +1,123 @@
-SwitchFleetManager – Cisco IOS Upgrade Automation with Jenkins + Ansible
-Project Overview
-SwitchFleetManager is a real-time network automation project that simulates Cisco IOS upgrades on multiple routers using Ansible and Jenkins. It is designed for network engineers who want to automate routine tasks like configuration backup, OS upgrade, and device reboot using a standardized playbook.
+#  SwitchFleetManager – Automating Cisco IOS Upgrades with Jenkins + Ansible
 
-This project also integrates with Jenkins CI/CD to automatically execute the upgrade process as part of a build job triggered by Git commits or manual runs.
+##  About This Project
 
-Real-Time Use Case
+**SwitchFleetManager** is a practical automation project designed to make Cisco IOS upgrades easier and more reliable across multiple devices. As network engineers, we all know how time-consuming and error-prone manual upgrades can be — especially when you’re dealing with dozens (or hundreds) of switches and routers.
 
-In enterprise networks, upgrading IOS on hundreds of routers/switches is:
+This project shows how to automate the entire upgrade process using **Ansible** and **Jenkins**, following real CI/CD workflows. It includes everything from backing up configs to setting boot variables and reloading devices (in a safe, simulated way using GNS3).
 
-Time-consuming
+---
 
-Error-prone
+## 💼 Real-Life Scenario
 
-Requires strict coordination
+In enterprise environments, IOS upgrades typically require:
 
-This tool helps automate:
+- Long maintenance windows  
+- Manual coordination between teams  
+- Risk of human error  
 
-Backing up existing configurations
+With **SwitchFleetManager**, we can automate tasks like:
 
-Checking current image in flash
+- Backing up existing configurations  
+- Checking current IOS image  
+- (Simulated) copying of new IOS  
+- Setting the correct boot image  
+- Saving the configuration  
+- Reloading devices in a scheduled manner  
 
-Copying the new IOS image (simulated here)
+All these steps are run as a Jenkins job and can be triggered manually or automatically when a Git commit is made.
 
-Setting boot variables
+---
 
-Saving configurations
+## 🔄 How It Works
 
-Reloading devices (soft reboot)
+Here's a quick breakdown of the workflow:
 
-⚙How It Works (Flow)
-Inventory: YAML-based file listing routers (e.g. R1, R2) with SSH credentials.
+1. **Inventory File:**  
+   A simple YAML file defines all router/switch info (IP, SSH creds).
 
-Playbook Execution: Jenkins runs the Ansible playbook on all routers.
+2. **Ansible Playbook:**  
+   Jenkins triggers the playbook to run upgrade tasks across all devices.
 
-Backup: Saves current config files (R1_config_xx.txt, R2_config_xx.txt)
+3. **Config Backup:**  
+   Backs up the current running config and stores it with a timestamp.
 
-Flash Check: Simulates checking current image using dir flash:
+4. **Flash Check (Simulated):**  
+   Checks the current IOS using `dir flash:` (skipped in GNS3).
 
-Image Copy: Skips real image transfer (in GNS3, flash is virtual)
+5. **Image Copy (Skipped):**  
+   We simulate image transfer — no real IOS file copy in this lab.
 
-Boot Config: Sets the new IOS image as the boot variable
+6. **Boot Setting & Save:**  
+   Sets the correct boot variable and saves the config.
 
-Save & Reload: Saves configuration and reloads router (timeout-simulated)
+7. **Reload (Optional):**  
+   Performs a simulated reload — in production, this would be real.
 
-File Structure
-Copy
-Edit
+---
+
+## 🗂️ Folder Structure
+
+```
 SwitchFleetManager/
 ├── playbooks/
 │   ├── upgrade_switch.yml
 │   └── backup/
-│       ├── R1_config_2025-07-29_19-16-26.txt
-│       └── R2_config_2025-07-29_19-16-26.txt
+│       ├── R1_config_*.txt
+│       └── R2_config_*.txt
 ├── inventory/
 │   └── switches.yml
+├── output_sample/
+│   ├── IOS_Upgarde (Automation).png
+│   ├── IOS_UpgardeJenkins.png
+│   ├── Jenkins_Output.txt
+│   └── Netboxproject.gns3
 ├── README.md
-🚫 What We Skipped in Lab (and Why)
-Feature	Skipped?	Reason
-Actual IOS Copy via SCP	✅ Yes	GNS3 devices don’t support real flash/IOS transfer
-Real Device Reload	✅ Yes	Router reload leads to session loss in GNS3 and halts playbook
-Flash Check Output	✅ Yes	dir flash: fails due to GNS3's virtual flash setup
+```
 
-✅ How to Handle in Real Environment
-Task	Real-world Handling
-SCP Image Transfer	Use copy scp://... in production where routers support SCP
-Flash Validation	Check image with dir flash: and compare MD5 hash
-Reload Coordination	Schedule reload via reload at HH:MM or during maintenance window
-Jenkins Integration	Use credential management and post-build actions to send Slack/email notifications
+---
 
-📤 Output Files Committed to Git
-Config backups are auto-generated and renamed for Git (e.g. R1_config_2025-07-29_19-16-26.txt)
+## 🚧 What’s Skipped in the Lab and Why
 
-These help verify what config was in place before upgrade
+| Feature                  | Skipped? | Reason                                           |
+|--------------------------|----------|--------------------------------------------------|
+| Real IOS Copy via SCP    | ✅ Yes   | GNS3 doesn’t support real flash or IOS storage   |
+| Actual Router Reload     | ✅ Yes   | Reload breaks SSH session in GNS3 environment    |
+| Flash Check Output       | ✅ Yes   | Virtual flash doesn’t behave like real devices   |
 
-Stored under playbooks/backup/ and pushed via Git CLI
+---
 
-🧠 Final Notes
-Project is simulation-ready, but 100% real-world extendable
+## 🛠️ What You’d Do in Production
 
-Follows CI/CD workflow for NetOps teams
+| Task               | How It’s Done in Real Networks                                  |
+|--------------------|------------------------------------------------------------------|
+| SCP Image Copy     | Use `copy scp://...` to transfer IOS images securely             |
+| Flash Validation   | Run `dir flash:` and compare the MD5 checksum                   |
+| Coordinated Reload | Use `reload at HH:MM` to align with change windows              |
+| Jenkins Alerts     | Use Jenkins post-build actions to send Slack/email notifications|
 
-Helps avoid human errors and speeds up fleet-wide upgrades
+---
 
+## 📁 Output Files
 
-Project Made by Praneeth Reddy
+The playbook automatically generates config backups like:
+
+```
+R1_config_2025-07-29_19-16-26.txt
+```
+
+These are stored under `playbooks/backup/` and pushed to Git for version control. You can track exactly what was running before any upgrade.
+
+---
+
+## 🧠 Final Thoughts
+
+- This project is built in GNS3, but it’s fully adaptable to real environments.
+- It’s a great way to bring **CI/CD practices into network engineering (NetDevOps)**.
+- Automating IOS upgrades can save huge amounts of time and avoid costly mistakes.
+
+---
+
+### 🙌 Built with 💻 by **Praneeth Reddy**
+
+> Feel free to fork, clone, or improve this project. Let's make network automation smarter, faster, and safer!
